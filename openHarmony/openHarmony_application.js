@@ -58,6 +58,17 @@
 $.oApp = function(){
 }
 
+/**
+ * The Harmony full version, including patch
+ * @name $.oApp#versionString
+ * @type {string}
+ * @readonly
+ */
+Object.defineProperty($.oApp.prototype, 'versionString', {
+  get : function(){
+    return about.getVersionInfoStr().split("version").pop().split("build")[0].replace(/\s/g, "");
+  }
+});
 
 /**
  * The Harmony version number
@@ -65,10 +76,34 @@ $.oApp = function(){
  * @type {int}
  * @readonly
  */
-Object.defineProperty($.oApp.prototype, 'version', {
-  get : function(){
-    return parseInt(about.getVersionInfoStr().split("version").pop().split(".")[0], 10);
-  }
+Object.defineProperty($.oApp.prototype, "version", {
+  get: function () {
+    return parseInt(this.versionString.split(".")[0], 10);
+  },
+});
+
+/**
+ * The Harmony minor Version (ex: 21.1.0 > 1 is the minor version)
+ * @name $.oApp#minorVersion
+ * @type {int}
+ * @readonly
+ */
+Object.defineProperty($.oApp.prototype, "minorVersion", {
+  get: function () {
+    return parseInt(this.versionString.split(".")[1], 10);
+  },
+});
+
+/**
+ * The Harmony patch number (ex: 21.1.0 > 0 is the patch number)
+ * @name $.oApp#patch
+ * @type {int}
+ * @readonly
+ */
+Object.defineProperty($.oApp.prototype, "patch", {
+  get: function () {
+    return parseInt(this.versionString.split(".")[2], 10);
+  },
 });
 
 

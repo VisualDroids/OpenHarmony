@@ -812,9 +812,21 @@ $.oPieMenu.prototype.buildWidget = function(){
   this.minimumHeight = this.maximumHeight = this.widgetSize;
   this.minimumWidth = this.maximumWidth = this.widgetSize;
 
-  var flags = new Qt.WindowFlags(Qt.Popup|Qt.FramelessWindowHint|Qt.WA_TransparentForMouseEvents);
-  this.setWindowFlags(flags);
-  this.setAttribute(Qt.WA_TranslucentBackground);
+  if (this.$.app.version + this.$.app.minorVersion > 21) {
+    // above Harmony 21.1
+    var flags = new Qt.WindowFlags(
+      Qt.Popup | Qt.FramelessWindowHint | Qt.NoDropShadowWindowHint
+    );
+    this.setWindowFlags(flags);
+    this.setAttribute(Qt.WA_TransparentForMouseEvents);
+  } else {
+    var flags = new Qt.WindowFlags(
+      Qt.Popup | Qt.FramelessWindowHint | Qt.WA_TransparentForMouseEvents
+    );
+    this.setWindowFlags(flags);
+  }
+
+  this.setAttribute(Qt.WA_TranslucentBackground, true);
   this.setAttribute(Qt.WA_DeleteOnClose);
 
   // draw background pie slice
@@ -859,8 +871,15 @@ $.oPieMenu.prototype.drawSlice = function(){
   sliceWidget.objectName = "slice";
   // make widget background invisible
   sliceWidget.setStyleSheet("background-color: rgba(0, 0, 0, 0.5%);");
-  var flags = new Qt.WindowFlags(Qt.FramelessWindowHint);
-  sliceWidget.setWindowFlags(flags)
+  if (this.$.app.version + this.$.app.minorVersion > 21) {
+    var flags = new Qt.WindowFlags(
+      Qt.FramelessWindowHint | Qt.NoDropShadowWindowHint
+    );
+    sliceWidget.setAttribute(Qt.WA_TranslucentBackground);
+  } else {
+    var flags = new Qt.WindowFlags(Qt.FramelessWindowHint);
+  }
+  sliceWidget.setWindowFlags(flags);
   sliceWidget.minimumHeight = this.height;
   sliceWidget.minimumWidth = this.width;
   sliceWidget.lower();
@@ -868,9 +887,10 @@ $.oPieMenu.prototype.drawSlice = function(){
   var sliceWidth = angleSlice[1]-angleSlice[0];
 
   // painting the slice on sliceWidget.update()
-  var sliceColor = this.sliceColor;
+  // var sliceColor = this.sliceColor;
   var backgroundColor = this.backgroundColor;
   var linesColor = this.linesColor;
+  var pieMenuWidgets = this.widgets;
 
   sliceWidget.paintEvent = function(){
     var painter = new QPainter();
@@ -878,18 +898,25 @@ $.oPieMenu.prototype.drawSlice = function(){
     painter.begin(sliceWidget);
 
     // draw background
+    // var bgColor = new $.oColorValue(pieMenuWidgets[index].backgroundColor);
     painter.setRenderHint(QPainter.Antialiasing);
     painter.setPen(new QPen(linesColor));
-    painter.setBrush(new QBrush(backgroundColor));
+    painter.setBrush(
+      new QBrush(backgroundColor)
+      // new QBrush(new QColor(bgColor.r, bgColor.g, bgColor.b, bgColor.a))
+    );
 
     painter.drawPath(contactPath);
 
     // draw slice and rotate around widget center
     painter.translate(center.x, center.y);
-    painter.rotate(sliceWidth*index*(-180));
+    painter.rotate(sliceWidth * index * -180);
     painter.translate(-center.x, -center.y);
     painter.setPen(new QPen(linesColor));
-    painter.setBrush(new QBrush(sliceColor));
+    var hvrColor = new $.oColorValue(pieMenuWidgets[index].backgroundColor);
+    painter.setBrush(
+      new QBrush(new QColor(hvrColor.r, hvrColor.g, hvrColor.b, hvrColor.a))
+    );
     painter.drawPath(slicePath);
     painter.end();
     painter.restore();
@@ -1273,7 +1300,7 @@ $.oPieSubMenu.prototype.buildWidget = function(){
   // if icon isnt provided
   if (typeof parent === 'undefined') var parent = $.app.mainWindow
   if (typeof text === 'undefined') var text = ""
-  if (typeof iconFile === 'undefined') var iconFile = specialFolders.resource+"/icons/script/qtgeneric.svg"
+
 
   QPushButton.call(this, text, parent);
 
@@ -1283,7 +1310,9 @@ $.oPieSubMenu.prototype.buildWidget = function(){
   // set during addition to the pie Menu
   this.pieIndex = undefined;
 
-  UiLoader.setSvgIcon(this, iconFile)
+  if (!iconFile === "" || !typeof iconFile === 'undefined'){
+    UiLoader.setSvgIcon(this, iconFile)
+  }
   this.setIconSize(new QSize(this.minimumWidth, this.minimumHeight));
   this.cursor = new QCursor(Qt.PointingHandCursor);
 
