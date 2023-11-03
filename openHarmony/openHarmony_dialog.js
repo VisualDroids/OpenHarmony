@@ -1031,11 +1031,41 @@ $.oPieMenu.prototype.drawSlice = function () {
     }
   };
 
+  // // Create a new QObject subclass
+  // var EventFilter = function (widget) {
+  //   QObject.call(this);
+  //   this.widget = widget;
+  // };
+
+  // EventFilter.prototype = Object.create(QObject.prototype);
+
+  // // Override the eventFilter method
+  // EventFilter.prototype.eventFilter = function (obj, event) {
+  //   if (event.type() === QEvent.MouseButtonPress) {
+  //     // Emit a custom 'clicked' signal
+  //     this.widget.clicked();
+  //     return true;
+  //   }
+  //   return false;
+  // };
+
+  // // Create an instance of the event filter
+  // var eventFilter = new EventFilter(sliceWidget);
+
+  // // Install the event filter on the sliceWidget
+  // sliceWidget.installEventFilter(eventFilter);
+
+  // // Define the clicked function
+  // sliceWidget.clicked = function () {
+  //   MessageLog.trace("Widget was clicked");
+  // };
+
   //set up automatic following of the mouse
   sliceWidget.mouseTracking = true;
 
   var pieMenu = this;
   var currentDistance = false;
+
   sliceWidget.mouseMoveEvent = function (mousePos) {
     // work out the index based on relative position to the center
     var position = new pieMenu.$.oPoint(mousePos.x(), mousePos.y());
@@ -1057,25 +1087,32 @@ $.oPieMenu.prototype.drawSlice = function () {
     if (indexWithinRange) {
       var indexWidget = pieMenu.widgets[currentIndex];
 
-      if (indexChanged && distance < pieMenu.maxRadius) {
+      // Activate the widget if the mouse is pressed
+      sliceWidget.mousePressEvent = function (event) {
+        indexWidget.activate();
+      };
+
+      // if (indexChanged && distance < pieMenu.maxRadius) {
+      if (indexChanged) {
         index = currentIndex;
         sliceWidget.update();
         indexWidget.setFocus(true);
       }
 
-      if (distanceChanged) {
-        currentDistance = distanceWithinRange;
-        if (distance > pieMenu.maxRadius) {
-          // activate the button
-          if (indexWidget.activate) indexWidget.activate();
-        } else if (distance < pieMenu.minRadius) {
-          // cursor reentered the widget: close the subMenu
-          if (indexWidget.deactivate) indexWidget.deactivate();
-        }
-        if (distance < pieMenu.minRadius) {
-          if (pieMenu.deactivate) pieMenu.deactivate();
-        }
-      }
+      // if (distanceChanged) {
+      // currentDistance = distanceWithinRange;
+      // if (distance > pieMenu.maxRadius) {
+      // activate the button
+      // if (indexWidget.activate) indexWidget.activate();
+      // pieMenu.deactivate();
+      // } else if (distance < pieMenu.minRadius) {
+      //   // cursor reentered the widget: close the subMenu
+      //   if (indexWidget.deactivate) indexWidget.deactivate();
+      // }
+      // if (distance < pieMenu.minRadius) {
+      //   if (pieMenu.deactivate) pieMenu.deactivate();
+      // }
+      // }
     }
   };
 
